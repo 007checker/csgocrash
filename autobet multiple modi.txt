@@ -12,7 +12,7 @@
 // Change Below to your own wishes!
 
 var baseBet = 10; 						// Change this to your base bet!
-var lookForRedTrains = true; 			// Change this to false if you want to bet every round!
+var lookForRedTrains = true; 					// Change this to false if you want to bet every round!
 var maxBet = 160; 						// Change this to your maximum bet
 var modus = 1; 							// Change this to any of the modi given below
 
