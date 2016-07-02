@@ -1,0 +1,184 @@
+// Creator: 007checker
+// SteamID64: 76561198307650738  (for donations)
+// You can use this script for free. However if you want to donate me you can do this by donating me some coins on csgocrash with the
+// SteamID64 given above.
+//
+//
+//
+// DON'T DISTRIBUTE THIS SCRIPT ON YOUR OWN. LINK TO THE URL YOU DOWNLOADED IT FROM!
+//
+//
+//
+// Change Below to your own wishes!
+
+var baseBet = 10; 						// Change this to your base bet!
+var lookForRedTrains = true; 			// Change this to false if you want to bet every round!
+var maxBet = 160; 						// Change this to your maximum bet
+var modus = 1; 							// Change this to any of the modi given below
+
+// Modus 1: Wait only for one or more red crashes. After one green crash go in again (only effective if lookForRedTrains = true)
+// Modus 2: Wait for red train, after that there need to be 2 green crashes before bet (only effective if lookForRedTrains = true)
+// Modus 3: Wait for red train and cash out at x1,1
+// Modus 4: Same as modus 1, but there is a 50% chance that he doesn't go in this round. Only for people who have to much money!
+
+///// Change Below at your own risk! /////
+
+var actBet = baseBet;
+var bal = engine.getBalance();
+var maxRound = 4;
+var actRound = 1;
+var multiplierOnLoss = 1;
+
+var lastGame = null;
+var beforeLastGame = null;
+var gameResult;
+var gameInside;
+
+switch(modus){
+	case 1:
+		multiplierOnLoss = 2;
+		break;
+	case 2:
+		multiplierOnLoss = 2;
+		break;
+	case 3:
+		multiplierOnLoss = 10;
+		break;
+	case 4:
+		multiplierOnLoss = 2;
+		break;
+	default:
+		multiplierOnLoss = 1;
+		break;
+}
+
+engine.on('game_starting', function(info) {
+    placeBet(actBet);
+});
+
+engine.on('game_crash', function(data) {
+	beforeLastGame = lastGame;
+	lastGame = (data.game_crash / 100);
+	bal = engine.getBalance();
+    gameResult = engine.lastGamePlay();
+	gameInside = engine.lastGamePlayed();
+	if (gameResult=="WON"&&gameInside==true) {
+		actBet = baseBet;
+	}
+	else if (gameResult=="LOST"&&gameInside==true) {
+		if (actRound <= maxRound){
+			actBet = actBet * multiplierOnLoss;
+		}else{
+			actBet = baseBet;
+		}
+	}
+});
+
+function placeBet(bet){
+	switch(modus){
+		case 1:
+			if(isRedTrain() && lookForRedTrains){
+				if(lastGame != null){
+					console.log("No bet, because Red Train");
+				}else{
+					console.log("Need to analyze one more round!");
+				}
+			}else{
+				if(bet > maxBet || bet > bal){
+					engine.stop();
+					console.log("Bet get's to high. Stopping Strategy!");
+				}
+				engine.placeBet(bet * 100, 200, false);
+				console.log("Bet placed! Bet amount:" + bet);
+			}
+			break;
+		case 2:
+			if(isRedTrain() && lookForRedTrains){
+				if(lastGame != null && beforeLastGame != null){
+					console.log("No bet, because Red Train");
+				}else if(lastGame != null || beforeLastGame != null){
+					console.log("Need to analyze one more round!");
+				}
+			}else{
+				if(bet > maxBet || bet > bal){
+					engine.stop();
+					console.log("Bet get's to high. Stopping Strategy!");
+				}
+				engine.placeBet(bet * 100, 200, false);
+				console.log("Bet placed! Bet amount:" + bet);
+			}
+			break;
+		case 3:
+			if(isRedTrain() && lookForRedTrains){
+				if(lastGame != null){
+					console.log("No bet, because Red Train");
+				}else{
+					console.log("Need to analyze one more round!");
+				}
+			}else{
+				if(bet > maxBet || bet > bal){
+					engine.stop();
+					console.log("Bet get's to high. Stopping Strategy!");
+				}
+				engine.placeBet(bet * 100, 110, false);
+				console.log("Bet placed! Bet amount:" + bet);
+			}
+			break;
+		case 4:
+			if(isRedTrain() && lookForRedTrains){
+				if(lastGame != null){
+					console.log("No bet, because Red Train");
+				}else{
+					console.log("Need to analyze one more round!");
+				}
+			}else{
+				if(bet > maxBet || bet > bal){
+					engine.stop();
+					console.log("Bet get's to high. Stopping Strategy!");
+				}
+				var ran = Math.floor((Math.random() * 10) + 1);
+				if(ran > 5){
+					engine.placeBet(bet * 100, 200, false);
+					console.log("Bet placed! Bet amount:" + bet);
+				}else{
+					console.log("I don't like this round. Maybe next time!");
+				}
+			}
+			break;
+		default:
+			engine.stop();
+			console.log(modus + " is not a valid modus! Use one that is given above!");
+			break;
+	}
+}
+
+function isRedTrain(){
+	if(lastGame != null){
+		switch(modus){
+			case 1:
+				if(lastGame >= 2){
+					return false;
+				}
+				break;
+			case 2:
+				if(lastGame >= 2 && beforeLastGame >= 2){
+					return false;
+				}
+				break;
+			case 3:
+				if(lastGame >= 1.1){
+					return false;
+				}
+				break;
+			case 4:
+				if(lastGame >= 2){
+					return false;
+				}
+				break;
+			default:
+				return true;
+				break;
+		}
+	}
+	return true;
+}
